@@ -23,3 +23,27 @@ class Product:
                 App.globalPut(self.Variables.sold, Int(0)),
                 Approve()
             ])
+        #buy product interaction method.
+        #contract payment and call methods grouped together.
+        def buy(self):
+            count = Txn.application_args[1]
+            valid_number_of_transactions = Global.group_size() == Int(2)#number of transactions must be exactly 2.
+
+            valid_payment_to_seller = And(
+                Gtxn[1].type_enum() == TxnType.Payment,#payment.
+                Gtxn[1].receiver() == Global.creator_address(),#receiver of payment is the app creator
+                Gtxn[1].amount() == App.globalGet(self.Variables.price) * Btoi(count),
+                Gtxn[1].sender() == Gtxn[0].sender(),
+            )
+
+            can_buy = And(valid_number_of_transactions,
+                        valid_payment_to_seller)
+
+            update_state = Seq([
+                App.globalPut(self.Variables.sold, App.globalGet(self.Variables.sold) + Btoi(count)),
+                Approve()
+            ])
+
+            return If(can_buy).Then(update_state).Else(Reject())   
+        def application_deletion(self):
+            return Return(Txn.sender() == Global.creator_address()) 
