@@ -13,8 +13,8 @@ class Product:
         buy = Bytes("buy")
         def application_creation(self):
             return Seq([
-                Assert(Txn.application_args.length() == Int(4)),
-                Assert(Txn.note() == Bytes("tutorial-marketplace:uv1")),
+                Assert(Txn.application_args.length() == Int(4)),#transaction arguments number
+                Assert(Txn.note() == Bytes("tutorial-marketplace:uv1")),#unique transaction note
                 Assert(Btoi(Txn.application_args[3]) > Int(0)),
                 App.globalPut(self.Variables.name, Txn.application_args[0]),
                 App.globalPut(self.Variables.image, Txn.application_args[1]),
