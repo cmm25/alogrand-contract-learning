@@ -47,3 +47,18 @@ class Product:
             return If(can_buy).Then(update_state).Else(Reject())   
         def application_deletion(self):
             return Return(Txn.sender() == Global.creator_address()) 
+        
+        #check transaction conditions loop
+        def application_start(self):
+            return Cond(
+                [Txn.application_id() == Int(0), self.application_creation()],#create app if app id = 0
+                [Txn.on_completion() == OnComplete.DeleteApplication, self.application_deletion()],#check if app deletion condition met and call the function
+                [Txn.application_args[0] == self.AppMethods.buy, self.buy()]#default case
+            )
+        #The approval program is responsible for implementing most of the logic of an application.
+        #Like smart signatures, this program will succeed only if one nonzero value is left on the stack upon program completion.
+        def approval_program(self):
+            return self.application_start()
+        #remove smart contract from accounts balance methods
+        def clear_program(self):
+            return Return(Int(1))
